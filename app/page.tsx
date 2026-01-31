@@ -9,108 +9,62 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function Dashboard() {
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
+export default function Home() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-
-  const router = useRouter();
-
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!currentUser) {
-        router.push("/");
-        return;
+      if (user) {
+        router.push("/dashboard");
+      } else {
+        setLoading(false);
       }
-
-      setUser(currentUser);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", currentUser.id)
-        .single();
-
-      setRole(profile?.role || null);
-      setLoading(false);
     };
 
-    loadProfile();
-  }, []);
+    checkUser();
+  }, [router]);
 
-  const addProduct = async () => {
-    if (!user) return;
-
-    await supabase.from("products").insert({
-      seller_id: user.id,
-      title,
-      description,
-      price: Number(price),
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
     });
-
-    setTitle("");
-    setDescription("");
-    setPrice("");
-    alert("Product added successfully");
   };
 
   if (loading) {
-    return <p style={{ padding: "40px" }}>Loading...</p>;
+    return (
+      <main style={{ padding: "40px", textAlign: "center" }}>
+        <button disabled>Loading...</button>
+      </main>
+    );
   }
 
   return (
-    <main style={{ padding: "40px" }}>
-      <h1>Dashboard</h1>
+    <main style={{ padding: "40px", textAlign: "center" }}>
+      <h1>SoftSphere</h1>
+      <p>Buy & Sell Software, Apps & AI Tools</p>
 
-      <p>
-        Welcome, <b>{user.email}</b>
-      </p>
-      <p>
-  Your role (raw): <b>{JSON.stringify(role)}</b>
-</p>
-
-      {role === "seller" && (
-        <>
-          <h2 style={{ marginTop: "30px" }}>Add a Product</h2>
-
-          <input
-            placeholder="Product title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{ display: "block", marginBottom: "10px" }}
-          />
-
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={{ display: "block", marginBottom: "10px" }}
-          />
-
-          <input
-            placeholder="Price"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            style={{ display: "block", marginBottom: "10px" }}
-          />
-
-          <button onClick={addProduct}>Add Product</button>
-        </>
-      )}
-
-      {role === "buyer" && (
-        <p style={{ marginTop: "30px" }}>
-          You are logged in as a buyer. Browse products in the marketplace.
-        </p>
-      )}
+      <button
+        onClick={signInWithGoogle}
+        style={{
+          marginTop: "20px",
+          padding: "12px 24px",
+          background: "black",
+          color: "white",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "16px",
+        }}
+      >
+        Sign in with Google
+      </button>
     </main>
   );
 }
