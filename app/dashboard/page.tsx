@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "../components/Navbar";
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -38,7 +39,7 @@ export default function Dashboard() {
         .eq("id", currentUser.id)
         .single();
 
-      setRole(profile?.role || null);
+      setRole(profile?.role?.trim() || null);
       setLoading(false);
     };
 
@@ -66,6 +67,8 @@ export default function Dashboard() {
   }
 
   return (
+  <>
+    <Navbar />
     <main style={{ padding: "40px" }}>
       <h1>Dashboard</h1>
 
@@ -73,10 +76,11 @@ export default function Dashboard() {
         Welcome, <b>{user.email}</b>
       </p>
       <p>
-  Your role (raw): <b>{JSON.stringify(role)}</b>
-</p>
+        Your role: <b>{role}</b>
+      </p>
 
-      {role === "seller" && (
+
+      {role?.trim() === "seller" && (
         <>
           <h2 style={{ marginTop: "30px" }}>Add a Product</h2>
 
@@ -111,6 +115,7 @@ export default function Dashboard() {
           You are logged in as a buyer. Browse products in the marketplace.
         </p>
       )}
-    </main>
-  );
+        </main>
+  </>
+);
 }
