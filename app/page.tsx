@@ -11,22 +11,20 @@ const supabase = createClient(
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
         router.push("/dashboard");
       } else {
-        setLoading(false);
+        setChecking(false);
       }
-    };
+    });
 
-    checkUser();
+    return () => subscription.unsubscribe();
   }, [router]);
 
   const signInWithGoogle = async () => {
@@ -38,7 +36,7 @@ export default function Home() {
     });
   };
 
-  if (loading) {
+  if (checking) {
     return (
       <main style={{ padding: "40px", textAlign: "center" }}>
         <button disabled>Loading...</button>
@@ -60,7 +58,6 @@ export default function Home() {
           color: "white",
           borderRadius: "6px",
           cursor: "pointer",
-          fontSize: "16px",
         }}
       >
         Sign in with Google
