@@ -2,32 +2,22 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-function DashboardInner() {
+export default function Dashboard() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const code = searchParams.get("code");
-
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const run = async () => {
-      // If coming from OAuth / magic link
-      if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
-        router.replace("/dashboard");
-        return;
-      }
-
+    const checkUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -41,27 +31,15 @@ function DashboardInner() {
       setLoading(false);
     };
 
-    run();
-  }, [code, router]);
+    checkUser();
+  }, [router]);
 
-  if (loading) {
-    return <p style={{ padding: "40px" }}>Loading dashboard…</p>;
-  }
+  if (loading) return <p style={{ padding: 40 }}>Loading dashboard…</p>;
 
   return (
-    <main style={{ padding: "40px" }}>
+    <main style={{ padding: 40 }}>
       <h1>Dashboard</h1>
-      <p>
-        Welcome, <b>{user.email}</b>
-      </p>
+      <p>Welcome, <b>{user.email}</b></p>
     </main>
-  );
-}
-
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<p style={{ padding: "40px" }}>Loading…</p>}>
-      <DashboardInner />
-    </Suspense>
   );
 }

@@ -11,10 +11,12 @@ const supabase = createClient(
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
+    const check = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -22,53 +24,58 @@ export default function Home() {
       if (user) {
         router.replace("/dashboard");
       } else {
-        setLoading(false);
+        setChecking(false);
       }
     };
 
-    checkSession();
+    check();
   }, [router]);
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
+  const sendLink = async () => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
-    if (error) {
-      alert("Google sign-in failed: " + error.message);
-    }
+    if (error) alert(error.message);
+    else setSent(true);
   };
 
-  if (loading) {
-    return (
-      <main style={{ padding: "40px", textAlign: "center" }}>
-        <button disabled>Loading...</button>
-      </main>
-    );
-  }
+  if (checking) return <p style={{ padding: 40 }}>Loading…</p>;
 
   return (
-    <main style={{ padding: "40px", textAlign: "center" }}>
+    <main style={{ padding: 40, textAlign: "center" }}>
       <h1>SoftSphere</h1>
       <p>Buy & Sell Software, Apps & AI Tools</p>
 
-      <button
-        onClick={signInWithGoogle}
-        style={{
-          marginTop: "20px",
-          padding: "12px 24px",
-          background: "black",
-          color: "white",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "16px",
-        }}
-      >
-        Sign in with Google
-      </button>
+      {sent ? (
+        <p>✅ Check your email for the login link</p>
+      ) : (
+        <>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ padding: 10, width: 260 }}
+          />
+          <br />
+          <button
+            onClick={sendLink}
+            style={{
+              marginTop: 12,
+              padding: "12px 24px",
+              background: "black",
+              color: "white",
+              borderRadius: 6,
+            }}
+          >
+            Send Login Link
+          </button>
+        </>
+      )}
     </main>
   );
 }
