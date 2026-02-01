@@ -1,8 +1,9 @@
 "use client";
+
 export const dynamic = "force-dynamic";
 
+import { Suspense, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const supabase = createClient(
@@ -10,7 +11,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function Dashboard() {
+function DashboardInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const code = searchParams.get("code");
@@ -19,15 +20,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const finalizeLogin = async () => {
-      // If redirected from Google with code
+    const run = async () => {
+      // If coming from OAuth / magic link
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
         router.replace("/dashboard");
         return;
       }
 
-      // Normal session check
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -41,7 +41,7 @@ export default function Dashboard() {
       setLoading(false);
     };
 
-    finalizeLogin();
+    run();
   }, [code, router]);
 
   if (loading) {
@@ -51,7 +51,17 @@ export default function Dashboard() {
   return (
     <main style={{ padding: "40px" }}>
       <h1>Dashboard</h1>
-      <p>Welcome, <b>{user.email}</b></p>
+      <p>
+        Welcome, <b>{user.email}</b>
+      </p>
     </main>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<p style={{ padding: "40px" }}>Loading…</p>}>
+      <DashboardInner />
+    </Suspense>
   );
 }
