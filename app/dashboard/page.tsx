@@ -10,10 +10,17 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+type Product = {
+  id: string;
+  title: string;
+  price: number;
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,7 +42,20 @@ export default function Dashboard() {
         .eq("id", user.id)
         .single();
 
-      setRole(profile?.role || "buyer");
+      const userRole = profile?.role || "buyer";
+      setRole(userRole);
+
+      // Fetch seller products
+      if (userRole === "seller") {
+        const { data: productsData } = await supabase
+          .from("products")
+          .select("id, title, price")
+          .eq("seller_id", user.id)
+          .order("created_at", { ascending: false });
+
+        setProducts(productsData || []);
+      }
+
       setLoading(false);
     };
 
@@ -73,22 +93,54 @@ export default function Dashboard() {
               marginBottom: 30,
             }}
           >
-            <h2>Your Seller Space</h2>
-            <p style={{ opacity: 0.7, marginBottom: 20 }}>
-              Manage your products and track performance.
-            </p>
+            <h2 style={{ marginBottom: 10 }}>Your Products</h2>
 
-            <button
-              style={{
-                padding: "12px 20px",
-                borderRadius: 10,
-                background: "#000",
-                color: "#fff",
-                fontWeight: 600,
-              }}
-            >
-              + Add New Product
-            </button>
+            {products.length === 0 ? (
+              <p style={{ opacity: 0.7 }}>
+                You haven’t added any products yet.
+              </p>
+            ) : (
+              <div style={{ display: "grid", gap: 16 }}>
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    style={{
+                      border: "1px solid #eee",
+                      borderRadius: 12,
+                      padding: 16,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>
+                      <h4 style={{ margin: 0 }}>
+                        {product.title}
+                      </h4>
+                      <p
+                        style={{
+                          margin: 0,
+                          opacity: 0.6,
+                        }}
+                      >
+                        ₹{product.price}
+                      </p>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: 12,
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        background: "#f2f2f2",
+                      }}
+                    >
+                      Live
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
