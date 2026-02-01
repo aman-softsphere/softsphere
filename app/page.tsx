@@ -11,40 +11,38 @@ const supabase = createClient(
 
 export default function Home() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        router.push("/dashboard");
-      } else {
-        setChecking(false);
-      }
-    });
+    const checkSession = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    return () => subscription.unsubscribe();
+      if (user) {
+        router.replace("/dashboard");
+      } else {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
   }, [router]);
 
-  const const signInWithGoogle = async () => {
-  await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  });
-};
- = async () => {
-    await supabase.auth.signInWithOAuth({
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
       },
     });
+
+    if (error) {
+      alert("Google sign-in failed: " + error.message);
+    }
   };
 
-  if (checking) {
+  if (loading) {
     return (
       <main style={{ padding: "40px", textAlign: "center" }}>
         <button disabled>Loading...</button>
@@ -66,6 +64,7 @@ export default function Home() {
           color: "white",
           borderRadius: "6px",
           cursor: "pointer",
+          fontSize: "16px",
         }}
       >
         Sign in with Google
