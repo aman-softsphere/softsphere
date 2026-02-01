@@ -15,8 +15,18 @@ export default function Home() {
   const [checking, setChecking] = useState(true);
   const [sent, setSent] = useState(false);
 
+  // 🔍 DEBUG: ENV VARS (TEMPORARY)
+  console.log(
+    "SUPABASE URL:",
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
+  console.log(
+    "SUPABASE ANON:",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 10)
+  );
+
   useEffect(() => {
-    const check = async () => {
+    const checkUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -28,7 +38,7 @@ export default function Home() {
       }
     };
 
-    check();
+    checkUser();
   }, [router]);
 
   const sendLink = async () => {
@@ -39,11 +49,16 @@ export default function Home() {
       },
     });
 
-    if (error) alert(error.message);
-    else setSent(true);
+    if (error) {
+      alert(error.message);
+    } else {
+      setSent(true);
+    }
   };
 
-  if (checking) return <p style={{ padding: 40 }}>Loading…</p>;
+  if (checking) {
+    return <p style={{ padding: 40 }}>Loading…</p>;
+  }
 
   return (
     <main style={{ padding: 40, textAlign: "center" }}>
@@ -70,6 +85,7 @@ export default function Home() {
               background: "black",
               color: "white",
               borderRadius: 6,
+              cursor: "pointer",
             }}
           >
             Send Login Link
