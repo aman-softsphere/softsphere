@@ -1,10 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +15,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const checkSession = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -31,15 +29,21 @@ export default function Dashboard() {
       setLoading(false);
     };
 
-    checkUser();
+    checkSession();
   }, [router]);
 
-  if (loading) return <p style={{ padding: 40 }}>Loading dashboard…</p>;
+  if (loading) {
+    return <p style={{ padding: 40 }}>Loading dashboard…</p>;
+  }
 
   return (
     <main style={{ padding: 40 }}>
       <h1>Dashboard</h1>
-      <p>Welcome, <b>{user.email}</b></p>
+      <p>
+        Welcome, <b>{user.email}</b>
+      </p>
+
+      <p>Dashboard content will appear here.</p>
     </main>
   );
 }
