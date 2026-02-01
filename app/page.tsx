@@ -15,16 +15,6 @@ export default function Home() {
   const [checking, setChecking] = useState(true);
   const [sent, setSent] = useState(false);
 
-  // 🔍 DEBUG: ENV VARS (TEMPORARY)
-  console.log(
-    "SUPABASE URL:",
-    process.env.NEXT_PUBLIC_SUPABASE_URL
-  );
-  console.log(
-    "SUPABASE ANON:",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 10)
-  );
-
   useEffect(() => {
     const checkUser = async () => {
       const {
@@ -61,12 +51,23 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 40, textAlign: "center" }}>
+    <main
+      style={{
+        padding: 40,
+        textAlign: "center",
+        maxWidth: 420,
+        margin: "0 auto",
+      }}
+    >
       <h1>SoftSphere</h1>
-      <p>Buy & Sell Software, Apps & AI Tools</p>
+      <p style={{ opacity: 0.7 }}>
+        Buy & Sell Software, Apps & AI Tools
+      </p>
 
       {sent ? (
-        <p>✅ Check your email for the login link</p>
+        <p style={{ marginTop: 20 }}>
+          ✅ Check your email for the login link
+        </p>
       ) : (
         <>
           <input
@@ -74,18 +75,24 @@ export default function Home() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ padding: 10, width: 260 }}
+            style={{
+              padding: 12,
+              width: "100%",
+              borderRadius: 10,
+              marginTop: 20,
+            }}
           />
-          <br />
+
           <button
             onClick={sendLink}
             style={{
-              marginTop: 12,
-              padding: "12px 24px",
-              background: "black",
-              color: "white",
-              borderRadius: 6,
-              cursor: "pointer",
+              marginTop: 16,
+              padding: "12px 22px",
+              background: "#ffffff",
+              color: "#000000",
+              borderRadius: 10,
+              fontWeight: 600,
+              width: "100%",
             }}
           >
             Send Login Link
