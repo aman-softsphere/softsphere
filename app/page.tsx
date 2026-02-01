@@ -27,7 +27,15 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const signInWithGoogle = async () => {
+  const const signInWithGoogle = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+};
+ = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
